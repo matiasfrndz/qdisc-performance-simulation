@@ -118,21 +118,34 @@ def performSimulation(qdisc, reassessDuration=False, reassessValue=True, resize=
 columns = ["Queueing Discipline", "Value Reassessed", "Duration Reassessed", "Resized", "10th percentile", "20th percentile", "30th percentile", "40th percentile", "50th percentile", "60th percentile", "70th percentile", "80th percentile", "90th percentile"]
 
 simulationResults = []
+
+print("Case I: CD3 Assumptions Are Met")
 simulationResults.append(performSimulation(QDiscCD3(), reassessDuration=False, reassessValue=False, resize=False))
 simulationResults.append(performSimulation(QDiscShortestJobFirst(), reassessDuration=False, reassessValue=False, resize=False))
 simulationResults.append(performSimulation(QDiscRandom(), reassessDuration=False, reassessValue=False, resize=False))
 
 df = pd.DataFrame(simulationResults, columns=columns)
-df.T.to_csv("report1.csv", sep="\t", header=False)
+df.T.to_csv("report-case-i.csv", sep="\t", header=False)
 print(df.T, "\n")
 
+print("Case II: CD3 Assumptions Not Met")
 simulationResults = []
 simulationResults.append(performSimulation(QDiscCD3(), reassessDuration=False, reassessValue=True, resize=False))
 simulationResults.append(performSimulation(QDiscShortestJobFirst(), reassessDuration=False, reassessValue=True, resize=False))
 simulationResults.append(performSimulation(QDiscRandom(), reassessDuration=False, reassessValue=True, resize=False))
 
 df = pd.DataFrame(simulationResults, columns=columns)
-df.T.to_csv("report2.csv", sep="\t", header=False)
+df.T.to_csv("report-case-ii.csv", sep="\t", header=False)
+print(df.T, "\n")
+
+print("Case II: CD3 Assumptions Not Met (Version 2)")
+simulationResults = []
+simulationResults.append(performSimulation(QDiscCD3(), reassessDuration=True, reassessValue=True, resize=False))
+simulationResults.append(performSimulation(QDiscShortestJobFirst(), reassessDuration=True, reassessValue=True, resize=False))
+simulationResults.append(performSimulation(QDiscRandom(), reassessDuration=True, reassessValue=True, resize=False))
+
+df = pd.DataFrame(simulationResults, columns=columns)
+df.T.to_csv("report-case-ii_1.csv", sep="\t", header=False)
 print(df.T, "\n")
 
 simulationResults = []
@@ -141,5 +154,5 @@ simulationResults.append(performSimulation(QDiscShortestJobFirst(), reassessDura
 simulationResults.append(performSimulation(QDiscRandom(), reassessDuration=False, reassessValue=True, resize=True))
 
 df = pd.DataFrame(simulationResults, columns=columns)
-df.T.to_csv("report3.csv", sep="\t", header=False)
+df.T.to_csv("report-case-iii.csv", sep="\t", header=False)
 print(df.T, "\n")
