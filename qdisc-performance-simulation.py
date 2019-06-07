@@ -148,6 +148,7 @@ df = pd.DataFrame(simulationResults, columns=columns)
 df.T.to_csv("report-case-ii_1.csv", sep="\t", header=False)
 print(df.T, "\n")
 
+print("Case III: Right Sizing of Items")
 simulationResults = []
 simulationResults.append(performSimulation(QDiscCD3(), reassessDuration=False, reassessValue=True, resize=True))
 simulationResults.append(performSimulation(QDiscShortestJobFirst(), reassessDuration=False, reassessValue=True, resize=True))
