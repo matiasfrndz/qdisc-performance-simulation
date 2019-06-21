@@ -64,7 +64,7 @@ def calcPercentage(base, candidate):
     }
     for k,v in candidate.items():
         if re.search("percentile", k):
-            result[k] = '{:.2f}'.format(v / base[k] - 1)
+            result[k] = '{:.0f}%'.format((v / base[k] - 1) * 100)
 
     return result
 
