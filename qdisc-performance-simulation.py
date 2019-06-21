@@ -49,9 +49,9 @@ def generateRandomFeatureDuration():
 def generateRandomFeatureValue():
     return np.random.randint(minFeatureValue, maxFeatureValue+1)
 
-def createFeature():
-    estimatedDuration = generateRandomFeatureDuration()
-    estimatedValue = generateRandomFeatureValue()
+def createFeature(estimatedDuration=None, estimatedValue=None):
+    if not estimatedDuration: estimatedDuration = generateRandomFeatureDuration()
+    if not estimatedValue: estimatedValue = generateRandomFeatureValue()
     cd3value = estimatedValue / estimatedDuration
     return {'estimatedDuration': estimatedDuration, 'estimatedValue': estimatedValue, 'cd3value': cd3value }
 
@@ -68,6 +68,23 @@ def calcPercentage(base, candidate):
 
     return result
 
+def decompose(number, numParts):
+    if number < numParts:
+        while number > 0:
+            n = random.randint(1, number)
+            yield n
+            number -= n
+            numParts -= 1
+        for i in range(numParts):
+            yield 0
+    else:
+        while number > 0 and numParts > 1:
+            n = random.randint(1, number-numParts+1)
+            yield n
+            number -= n
+            numParts -= 1
+        yield number
+
 def performSimulation(qdisc, reassessDuration=False, reassessValue=True, resize=False):
     results = []
 
@@ -75,10 +92,8 @@ def performSimulation(qdisc, reassessDuration=False, reassessValue=True, resize=
     while i < numRuns:
         features = []
 
-        x = 0
-        while x < 10:
+        for x in range(10):
             features.append(createFeature())
-            x += 1
 
         elapsedWeeks = 0
         accruedValue = 0
@@ -87,15 +102,20 @@ def performSimulation(qdisc, reassessDuration=False, reassessValue=True, resize=
             features = qdisc.sort(features)
             currentFeature = features.pop(0)
 
+            if resize and currentFeature['estimatedDuration'] > maxDuration:
+                splittedDurations = list(decompose(currentFeature['estimatedDuration'], 4))
+                random.shuffle(splittedDurations)
+                splittedValues = list(decompose(currentFeature['estimatedValue'], 4))
+                random.shuffle(splittedValues)
+
+                for x in range(3):
+                    features.append(createFeature(splittedDurations.pop(0), splittedValues.pop(0)))
+                continue
+
             if reassessDuration:
                 currentFeatureDuration = generateRandomFeatureDuration()
             else:
                 currentFeatureDuration = currentFeature['estimatedDuration']
-
-            if resize and currentFeatureDuration > maxDuration:
-                currentFeatureDuration = 5
-                for x in range(3):
-                    features.append(createFeature())
 
             if reassessValue:
                 currentFeatureValue = generateRandomFeatureValue()
@@ -106,9 +126,8 @@ def performSimulation(qdisc, reassessDuration=False, reassessValue=True, resize=
                 break
 
             numberNewFeatures = math.floor((elapsedWeeks+currentFeatureDuration)/2) - math.floor(elapsedWeeks/2)
-            while numberNewFeatures > 0:
+            for x in range(numberNewFeatures):
                 features.append(createFeature())
-                numberNewFeatures -= 1
 
             elapsedWeeks += currentFeatureDuration
             accruedValue += currentFeatureValue
