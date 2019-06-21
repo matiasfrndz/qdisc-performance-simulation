@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import math
 import random
+import re
 
 simulationDuration = 100
 minFeatureDuration = 1
@@ -53,6 +54,19 @@ def createFeature():
     estimatedValue = generateRandomFeatureValue()
     cd3value = estimatedValue / estimatedDuration
     return {'estimatedDuration': estimatedDuration, 'estimatedValue': estimatedValue, 'cd3value': cd3value }
+
+def calcPercentage(base, candidate):
+    result = {
+        "Queueing Discipline": "",
+        "Value Reassessed": "",
+        "Duration Reassessed": "",
+        "Resized": ""
+    }
+    for k,v in candidate.items():
+        if re.search("percentile", k):
+            result[k] = '{:.2f}'.format(v / base[k] - 1)
+
+    return result
 
 def performSimulation(qdisc, reassessDuration=False, reassessValue=True, resize=False):
     results = []
@@ -115,45 +129,51 @@ def performSimulation(qdisc, reassessDuration=False, reassessValue=True, resize=
         i += 1
     return result
 
-columns = ["Queueing Discipline", "Value Reassessed", "Duration Reassessed", "Resized", "10th percentile", "20th percentile", "30th percentile", "40th percentile", "50th percentile", "60th percentile", "70th percentile", "80th percentile", "90th percentile"]
+def runSimulationSet(title, set, out):
+    simulationResults = []
+    columns = ["Queueing Discipline", "Value Reassessed", "Duration Reassessed", "Resized", "10th percentile", "20th percentile", "30th percentile", "40th percentile", "50th percentile", "60th percentile", "70th percentile", "80th percentile", "90th percentile"]
 
-simulationResults = []
+    print(title)
 
-print("Case I: CD3 Assumptions Are Met")
-simulationResults.append(performSimulation(QDiscCD3(), reassessDuration=False, reassessValue=False, resize=False))
-simulationResults.append(performSimulation(QDiscShortestJobFirst(), reassessDuration=False, reassessValue=False, resize=False))
-simulationResults.append(performSimulation(QDiscRandom(), reassessDuration=False, reassessValue=False, resize=False))
+    baseSim = set.pop(0);
+    base = performSimulation(baseSim[0], reassessDuration=baseSim[1], reassessValue=baseSim[2], resize=baseSim[3])
+    simulationResults.append(base)
 
-df = pd.DataFrame(simulationResults, columns=columns)
-df.T.to_csv("report-case-i.csv", sep="\t", header=False)
-print(df.T, "\n")
+    for sim in set:
+        result = performSimulation(sim[0], reassessDuration=sim[1], reassessValue=sim[2], resize=sim[3])
+        simulationResults.append(result)
+        simulationResults.append(calcPercentage(base, result))
 
-print("Case II: CD3 Assumptions Not Met")
-simulationResults = []
-simulationResults.append(performSimulation(QDiscCD3(), reassessDuration=False, reassessValue=True, resize=False))
-simulationResults.append(performSimulation(QDiscShortestJobFirst(), reassessDuration=False, reassessValue=True, resize=False))
-simulationResults.append(performSimulation(QDiscRandom(), reassessDuration=False, reassessValue=True, resize=False))
+    df = pd.DataFrame(simulationResults, columns=columns)
+    df.T.to_csv("out", sep="\t", header=False)
+    print(df.T, "\n")
 
-df = pd.DataFrame(simulationResults, columns=columns)
-df.T.to_csv("report-case-ii.csv", sep="\t", header=False)
-print(df.T, "\n")
 
-print("Case II: CD3 Assumptions Not Met (Version 2)")
-simulationResults = []
-simulationResults.append(performSimulation(QDiscCD3(), reassessDuration=True, reassessValue=True, resize=False))
-simulationResults.append(performSimulation(QDiscShortestJobFirst(), reassessDuration=True, reassessValue=True, resize=False))
-simulationResults.append(performSimulation(QDiscRandom(), reassessDuration=True, reassessValue=True, resize=False))
+set = [
+# Array format: qdisc, reassessDuration, reassessValue, resize
+# see performSimulation
+    [QDiscCD3(), False, False, False],
+    [QDiscRandom(), False, False, False],
+    [QDiscShortestJobFirst(), False, False, False]
+]
+runSimulationSet("Case I: CD3 Assumptions Are Met", set, "report-case-i.csv")
 
-df = pd.DataFrame(simulationResults, columns=columns)
-df.T.to_csv("report-case-ii_1.csv", sep="\t", header=False)
-print(df.T, "\n")
+set = [
+    [QDiscCD3(), False, True, False],
+    [QDiscRandom(), False, True, False],
+    [QDiscShortestJobFirst(), False, True, False]
+]
+runSimulationSet("Case II: CD3 Assumptions Not Met", set, "report-case-ii.csv")
 
-print("Case III: Right Sizing of Items")
-simulationResults = []
-simulationResults.append(performSimulation(QDiscCD3(), reassessDuration=False, reassessValue=True, resize=True))
-simulationResults.append(performSimulation(QDiscShortestJobFirst(), reassessDuration=False, reassessValue=True, resize=True))
-simulationResults.append(performSimulation(QDiscRandom(), reassessDuration=False, reassessValue=True, resize=True))
+set = [
+    [QDiscCD3(), True, True, False],
+    [QDiscRandom(), True, True, False],
+    [QDiscShortestJobFirst(), True, True, False]
+]
+runSimulationSet("Case II: CD3 Assumptions Not Met (Version 2)", set, "report-case-ii_1.csv")
 
-df = pd.DataFrame(simulationResults, columns=columns)
-df.T.to_csv("report-case-iii.csv", sep="\t", header=False)
-print(df.T, "\n")
+set = [
+    [QDiscCD3(), False, True, True],
+    [QDiscRandom(), False, True, True],
+    [QDiscShortestJobFirst(), False, True, True]
+]
