@@ -153,27 +153,29 @@ set = [
 # Array format: qdisc, reassessDuration, reassessValue, resize
 # see performSimulation
     [QDiscCD3(), False, False, False],
-    [QDiscRandom(), False, False, False],
-    [QDiscShortestJobFirst(), False, False, False]
+    [QDiscShortestJobFirst(), False, False, False],
+    [QDiscRandom(), False, False, False]
 ]
 runSimulationSet("Case I: CD3 Assumptions Are Met", set, "report-case-i.csv")
 
 set = [
     [QDiscCD3(), False, True, False],
-    [QDiscRandom(), False, True, False],
-    [QDiscShortestJobFirst(), False, True, False]
+    [QDiscShortestJobFirst(), False, True, False],
+    [QDiscRandom(), False, True, False]
 ]
 runSimulationSet("Case II: CD3 Assumptions Not Met", set, "report-case-ii.csv")
 
 set = [
     [QDiscCD3(), True, True, False],
-    [QDiscRandom(), True, True, False],
-    [QDiscShortestJobFirst(), True, True, False]
+    [QDiscShortestJobFirst(), True, True, False],
+    [QDiscRandom(), True, True, False]
 ]
 runSimulationSet("Case II: CD3 Assumptions Not Met (Version 2)", set, "report-case-ii_1.csv")
 
 set = [
     [QDiscCD3(), False, True, True],
-    [QDiscRandom(), False, True, True],
-    [QDiscShortestJobFirst(), False, True, True]
+    [QDiscShortestJobFirst(), False, True, True],
+    [QDiscRandom(), False, True, True]
 ]
+runSimulationSet("Case III: Right Sizing of Items", set, "report-case-iii.csv")
+
